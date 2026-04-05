@@ -1,8 +1,0 @@
-streamlit
-ultralytics
-opencv-python-headless
-Pillow
-numpy
-requests
-torch==2.0.1
-torchvision==0.15.2
