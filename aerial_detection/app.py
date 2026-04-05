@@ -3,7 +3,8 @@ from ultralytics import YOLO
 from PIL import Image
 import numpy as np
 import os
-
+import sys
+st.write(sys.version)
 # ── Page Config ─────────────────────────────
 st.set_page_config(
     page_title="🦅 Bird vs Drone Detection",
