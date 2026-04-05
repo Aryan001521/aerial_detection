@@ -3,8 +3,8 @@ from ultralytics import YOLO
 from PIL import Image
 import numpy as np
 import os
-import sys
-st.write(sys.version)
+import requests
+
 # ── Page Config ─────────────────────────────
 st.set_page_config(
     page_title="🦅 Bird vs Drone Detection",
@@ -12,43 +12,38 @@ st.set_page_config(
     layout="wide"
 )
 
-# ── Custom CSS (Modern UI) ──────────────────
-st.markdown("""
-    <style>
-    .main {
-        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-        color: white;
-    }
-    .title {
-        font-size: 40px;
-        font-weight: bold;
-        text-align: center;
-    }
-    .sub {
-        text-align: center;
-        font-size: 18px;
-        color: #cccccc;
-    }
-    </style>
-""", unsafe_allow_html=True)
+# ── Title UI ───────────────────────────────
+st.markdown(
+    "<h1 style='text-align:center;'>🦅 Bird vs Drone AI Detection</h1>",
+    unsafe_allow_html=True
+)
+st.markdown(
+    "<p style='text-align:center;'>YOLOv8 • Real-time Detection • Clean UI</p>",
+    unsafe_allow_html=True
+)
 
-st.markdown('<div class="title">🦅 Bird vs Drone AI System</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub">YOLO Detection • Real-time Prediction • Clean UI</div>', unsafe_allow_html=True)
+# ── Download Model from GitHub ─────────────
+MODEL_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/best.pt"
 
-# ── Model Load ─────────────────────────────
-MODEL_PATH = "best.pt"   # <-- same folder me hona chahiye
+def download_model():
+    if not os.path.exists("best.pt"):
+        with open("best.pt", "wb") as f:
+            f.write(requests.get(MODEL_URL).content)
 
+download_model()
+
+# ── Load Model ─────────────────────────────
 @st.cache_resource
 def load_model():
-    return YOLO(MODEL_PATH)
+    return YOLO("best.pt")
 
-yolo_model = load_model()
+model = load_model()
 
 # ── Sidebar ────────────────────────────────
 st.sidebar.title("⚙️ Settings")
-confidence = st.sidebar.slider("Confidence Threshold", 0.1, 1.0, 0.25)
+confidence = st.sidebar.slider("Confidence", 0.1, 1.0, 0.25)
 
-# ── File Upload ────────────────────────────
+# ── Upload Image ───────────────────────────
 uploaded_file = st.file_uploader("📤 Upload Image", type=["jpg", "png", "jpeg"])
 
 if uploaded_file:
@@ -62,22 +57,17 @@ if uploaded_file:
     with col2:
         st.markdown("### 🔍 Detection Result")
 
-        # Convert image to numpy
         img_array = np.array(image)
 
-        # Prediction
-        results = yolo_model.predict(
+        results = model.predict(
             source=img_array,
             conf=confidence,
             save=False
         )
 
-        # Plot result
         result_img = results[0].plot()
-
         st.image(result_img, caption="Detected Output", use_column_width=True)
 
-        # ── Show detections ─────────────────
         boxes = results[0].boxes
 
         if boxes is not None and len(boxes) > 0:
@@ -86,8 +76,7 @@ if uploaded_file:
             for box in boxes:
                 cls_id = int(box.cls[0])
                 conf_score = float(box.conf[0])
-
-                label = yolo_model.names[cls_id]
+                label = model.names[cls_id]
 
                 st.write(f"🔹 **{label}** ({conf_score*100:.2f}%)")
         else:
@@ -95,4 +84,4 @@ if uploaded_file:
 
 # ── Footer ────────────────────────────────
 st.markdown("---")
-st.markdown("💡 Built with YOLOv8 • Streamlit • Deep Learning")
+st.markdown("🚀 Built using YOLOv8 + Streamlit")
